@@ -682,8 +682,8 @@ void player_t::SendPitchLimits() const
 			}
 			else
 			{
-				players[playerIndex].MinPitch = - 32 * ANGLE_1;
-				players[playerIndex].MaxPitch = 56 * ANGLE_1;
+				players[playerIndex].MinPitch = -90 * ANGLE_1;
+				players[playerIndex].MaxPitch = 90 * ANGLE_1;
 			}
 		}
 	}
@@ -3636,10 +3636,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 		{
 			int look = cmd->ucmd.pitch << 16;
 
-			// The player's view pitch is clamped between -32 and +56 degrees,
-			// which translates to about half a screen height up and (more than)
-			// one full screen height down from straight ahead when view panning
-			// is used.
+			// The player's view pitch is clamped between -90 and +90 degrees
 			if (look)
 			{
 				if (look == -32768 << 16)
@@ -3653,7 +3650,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					if (look > 0)
 					{ // look up
 						// [BB] Zandronum handles pitch differently.
-						const fixed_t pitchLimit = - ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(false) : 32 ) * ANGLE_1;
+						const fixed_t pitchLimit = - ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(false) : 90 ) * ANGLE_1;
 						player->mo->pitch = MAX(player->mo->pitch, pitchLimit );
 						if (player->mo->pitch > oldpitch)
 						{
@@ -3663,7 +3660,7 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 					else
 					{ // look down
 						// [BB] Zandronum handles pitch differently.
-						const fixed_t pitchLimit = ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(true) : 56 ) * ANGLE_1;
+						const fixed_t pitchLimit = ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) ? Renderer->GetMaxViewPitch(true) : 90 ) * ANGLE_1;
 						player->mo->pitch = MIN(player->mo->pitch, pitchLimit );
 						if (player->mo->pitch < oldpitch)
 						{
