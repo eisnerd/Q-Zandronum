@@ -2654,6 +2654,8 @@ void P_CalcHeight (player_t *player)
 	if ( CLIENT_PREDICT_IsPredicting( ))
 		return;
 
+	player->prevbob = player->bob;
+
 	// Regular movement bobbing
 	// (needs to be calculated for gun swing even if not on ground)
 
