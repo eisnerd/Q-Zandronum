@@ -1416,7 +1416,7 @@ static void network_InitPWADList( void )
 	}
 
 	g_IWAD = Wads.GetWadName( ulRealIWADIdx );
-
+	
 	// Collect all the PWADs into a list.
 	for ( ULONG ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 	{

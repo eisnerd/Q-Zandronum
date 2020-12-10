@@ -1430,14 +1430,30 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 					szErrorString.Format( "%s authentication failed.\nPlease make sure you are using the exact same WAD(s) as the server, and try again.", ( ulErrorCode == NETWORK_ERRORCODE_PROTECTED_LUMP_AUTHENTICATIONFAILED ) ? "Protected lump" : "Level" );
 
-					Printf ( "The server reports %d pwad(s):\n", numServerPWADs );
-					for( std::list<std::pair<FString, FString> >::iterator i = serverPWADs.begin( ); i != serverPWADs.end( ); ++i )
-						Printf( "PWAD: %s - %s\n", i->first.GetChars(), i->second.GetChars() );
-					Printf ( "You have loaded %d pwad(s):\n", NETWORK_GetPWADList().Size() );
-					for ( unsigned int i = 0; i < NETWORK_GetPWADList().Size(); ++i )
+					TArray<NetworkPWAD> LocalPWADs = NETWORK_GetPWADList();
+					for ( unsigned int i = 0; i < LocalPWADs.Size(); ++i )
 					{
-						const NetworkPWAD& pwad = NETWORK_GetPWADList()[i];
-						Printf( "PWAD: %s - %s\n", pwad.name.GetChars(), pwad.checksum.GetChars() );
+						for ( std::list<std::pair<FString, FString> >::iterator j = serverPWADs.begin(); j != serverPWADs.end(); ++j )
+						{
+							if ( stricmp( LocalPWADs[i].name, j->first ) == 0 )
+							{
+								if ( stricmp(LocalPWADs[i].checksum, j->second ) != 0 )
+								{
+									Printf ( "- Your %s is different from the server: %s vs %s\n", LocalPWADs[i].name.GetChars(), LocalPWADs[i].checksum.GetChars(), j->second.GetChars() );
+								}
+
+								serverPWADs.remove( *j );
+								goto cnt; // continue first loop
+							}
+						}
+
+						Printf ( "- You are using %s, but the server doesn't: %s\n", LocalPWADs[i].name.GetChars(), LocalPWADs[i].checksum.GetChars() );
+						cnt: ;
+					}
+
+					for ( std::list<std::pair<FString, FString> >::iterator j = serverPWADs.begin(); j != serverPWADs.end(); ++j )
+					{
+						Printf ( "- The server is using the %s, but you don't: %s\n", j->first.GetChars(), j->second.GetChars() );
 					}
 
 					break;
