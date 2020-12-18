@@ -494,6 +494,9 @@ enum
 
 	// [geNia] Disable wallfriction
 	ZACOMPATF_DISABLE_WALL_FRICTION = 1 << 29,
+
+	// [geNia] Enable quake style explosion thrusts
+	ZACOMPATF_QUAKE_EXPLOSION_THRUST = 1 << 30,
 };
 
 // Emulate old bugs for select maps. These are not exposed by a cvar
