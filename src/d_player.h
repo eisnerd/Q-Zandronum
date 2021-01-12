@@ -165,6 +165,13 @@ public:
 	fixed_t		AirCapacity;			// Multiplier for air supply underwater.
 	const PClass *FlechetteType;
 
+	// [geNia] The server updates player data before sending it to clients, but the player input is still old.
+	// That results in player input being one tic behind position, so we need to remember last position to send it to other clients.
+	fixed_t		ClientX, ClientY, ClientZ;
+	fixed_t		ClientVelX, ClientVelY, ClientVelZ;
+	angle_t		ClientAngle;
+	fixed_t		ClientPitch;
+
 	// [CW] Fades for when you are being damaged.
 	PalEntry DamageFade;
 
@@ -406,8 +413,6 @@ struct userinfo_t : TMap<FName,FBaseCVar *>
 	int GenderNumChanged(int gendernum);
 	int RailColorChanged(int railcolor);
 	int HandicapChanged(int handicap);
-	int TicsPerUpdateChanged(int ticsperupdate);
-	int ConnectionTypeChanged(int connectiontype);
 	int ClientFlagsChanged(int flags);
 	int GetRailColor() const 
 	{
@@ -424,24 +429,6 @@ struct userinfo_t : TMap<FName,FBaseCVar *>
 			return *static_cast<FIntCVar *>(*CheckKey(NAME_Handicap));
 		else {
 			Printf ( "Error: No Handicap key found!\n" );
-			return 0;
-		}
-	}
-	int GetTicsPerUpdate() const
-	{
-		if ( CheckKey(NAME_CL_TicsPerUpdate) != NULL )
-			return *static_cast<FIntCVar *>(*CheckKey(NAME_CL_TicsPerUpdate));
-		else {
-			Printf ( "Error: No TicsPerUpdate key found!\n" );
-			return 0;
-		}
-	}
-	int GetConnectionType() const
-	{
-		if ( CheckKey(NAME_CL_ConnectionType) != NULL )
-			return *static_cast<FIntCVar *>(*CheckKey(NAME_CL_ConnectionType));
-		else {
-			Printf ( "Error: No ConnectionType key found!\n" );
 			return 0;
 		}
 	}

@@ -2642,14 +2642,6 @@ void P_CalcHeight (player_t *player)
 	fixed_t 	bob;
 	bool		still = false;
 
-	// [BB] Clients don't calculate the viewheight of the player whose eyes they are looking through
-	// they receive that from the server (except if they are looking through their own eyes).
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( player->mo->CheckLocalView( consoleplayer ) ) &&
-		(( player - players ) != consoleplayer ))
-	{
-		return;
-	}
-
 	// [BC] If we're predicting, nothing to do here.
 	if ( CLIENT_PREDICT_IsPredicting( ))
 		return;
@@ -2795,13 +2787,6 @@ CUSTOM_CVAR (Float, sv_aircontrol, 0.00390625f, CVAR_SERVERINFO|CVAR_NOSAVE)
 
 void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 {
-	// [BB] A client doesn't know enough about the other players to make their movement.
-	if ( NETWORK_InClientMode() &&
-		(( player - players ) != consoleplayer ) && !CLIENTDEMO_IsFreeSpectatorPlayer ( player ))
-	{
-		return;
-	}
-
 	APlayerPawn *mo = player->mo;
 
 	// [Leo] cl_spectatormove is now applied here to avoid code duplication.
@@ -2951,10 +2936,6 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 			if ( CLIENT_PREDICT_IsPredicting( ) == false )
 				S_Sound (player->mo, CHAN_BODY, "*jump", 1, ATTN_NORM);
 
-			// [EP] Inform the other clients to play the sound.
-			if ( NETWORK_GetState() == NETSTATE_SERVER )
-				SERVERCOMMANDS_SoundActor( player->mo, CHAN_BODY, "*jump", 1, ATTN_NORM, player - players, SVCF_SKIPTHISCLIENT );
-
 			player->mo->flags2 &= ~MF2_ONMOBJ;
 
 			// [BC] Increase jump delay if the player has the high jump power.
@@ -2969,8 +2950,7 @@ void P_MovePlayer (player_t *player, ticcmd_t *cmd)
 			player->jumpTics = ulJumpTicks;
 		}
 	}
-}		
-
+}
 //==========================================================================
 //
 // P_FallingDamage
@@ -3518,34 +3498,30 @@ void P_PlayerThink (player_t *player, ticcmd_t *pCmd)
 
 	bool totallyfrozen = P_IsPlayerTotallyFrozen(player);
 
-	// [BB] Why should a predicting client ignore CF_TOTALLYFROZEN and CF_FROZEN?
-	//if ( CLIENT_PREDICT_IsPredicting( ) == false )
+	// [RH] Being totally frozen zeros out most input parameters.
+	if (totallyfrozen)
 	{
-		// [RH] Being totally frozen zeros out most input parameters.
-		if (totallyfrozen)
+		if (gamestate == GS_TITLELEVEL)
 		{
-			if (gamestate == GS_TITLELEVEL)
-			{
-				cmd->ucmd.buttons = 0;
-			}
-			else
-			{
-				cmd->ucmd.buttons &= BT_USE;
-			}
-			cmd->ucmd.pitch = 0;
-			cmd->ucmd.yaw = 0;
-			cmd->ucmd.roll = 0;
-			cmd->ucmd.forwardmove = 0;
-			cmd->ucmd.sidemove = 0;
-			cmd->ucmd.upmove = 0;
-			player->turnticks = 0;
+			cmd->ucmd.buttons = 0;
 		}
-		else if (player->cheats & CF_FROZEN)
+		else
 		{
-			cmd->ucmd.forwardmove = 0;
-			cmd->ucmd.sidemove = 0;
-			cmd->ucmd.upmove = 0;
+			cmd->ucmd.buttons &= BT_USE;
 		}
+		cmd->ucmd.pitch = 0;
+		cmd->ucmd.yaw = 0;
+		cmd->ucmd.roll = 0;
+		cmd->ucmd.forwardmove = 0;
+		cmd->ucmd.sidemove = 0;
+		cmd->ucmd.upmove = 0;
+		player->turnticks = 0;
+	}
+	else if (player->cheats & CF_FROZEN)
+	{
+		cmd->ucmd.forwardmove = 0;
+		cmd->ucmd.sidemove = 0;
+		cmd->ucmd.upmove = 0;
 	}
 
 	// If this is a bot, run its logic.
